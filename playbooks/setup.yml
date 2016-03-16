@@ -1,5 +1,5 @@
 ---
-- hosts: all
+- hosts: role=node
   roles:
     -
       role: common
@@ -10,8 +10,16 @@
       become: yes
 
     -
-      role: flocker
+      role: dnsmasq
       become: yes
+
+    -
+      role: traefik
+      become: yes
+
+    # -
+    #   role: flocker
+    #   become: yes
 
     -
       role: docker

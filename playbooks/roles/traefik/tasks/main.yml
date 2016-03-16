@@ -1,0 +1,58 @@
+---
+- name: create traefik group
+  group: >
+    name={{ traefik_group }}
+    state=present
+
+- name: create traefik user
+  user: >
+    name={{ traefik_user }}
+    group={{ traefik_group }}
+    system=yes
+    state=present
+
+- name: create traefik log file
+  file: >
+    state=touch
+    path={{ item }}
+    owner={{ traefik_user }}
+    group={{ traefik_group }}
+    mode=0644
+  with_items:
+    - "{{ traefik_log_file }}"
+    - "{{ traefik_log_access_file }}"
+
+- name: check traefik bin stat
+  stat: path={{ traefik_bin }}
+  register: traefik_bin_stat
+
+- name: install traefik
+  get_url: >
+    url={{ traefik_download_url }}
+    dest={{ traefik_bin }}
+    owner={{ traefik_user }}
+    group={{ traefik_group }}
+    force=yes
+    mode=0744
+  when: not traefik_bin_stat.stat.exists
+
+- name: copy traefik config
+  template: >
+    src={{ item }}.j2
+    dest=/{{ item }}
+    owner={{ traefik_user }}
+    group={{ traefik_group }}
+    mode=0644
+  with_items:
+    - etc/traefik.toml
+
+- name: copy traefik upstart script
+  template: >
+    src=etc/init/traefik.conf.j2
+    dest=/etc/init/traefik.conf
+    owner=root
+    group=root
+    mode=0644
+
+- name: ensure traefik is restarted
+  service: name=traefik enabled=no state=stopped

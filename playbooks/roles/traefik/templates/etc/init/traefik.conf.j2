@@ -1,0 +1,14 @@
+description "Traefik load balancer"
+
+start on (local-filesystems and net-device-up IFACE!=lo)
+stop on runlevel [016]
+
+script
+
+sudo setcap CAP_NET_BIND_SERVICE=+eip {{ traefik_bin }}; exec sudo -u {{ traefik_user }} -g {{ traefik_group }} {{ traefik_bin }} -c {{ traefik_config_file }} >> {{ traefik_log_file }} 2>&1
+end script
+
+respawn
+respawn limit 10 10
+
+kill timeout 10

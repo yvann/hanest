@@ -3,14 +3,13 @@
   group: >
     name={{ consul_group }}
     state=present
-  register: consul_group_created
 
 - name: create consul user
   user: >
     name={{ consul_user }}
     group={{ consul_group }}
     system=yes
-  when: consul_group_created|changed
+    state=present
 
 - name: create consul directories
   file: >
@@ -18,11 +17,19 @@
     path={{ item }}
     owner={{ consul_user }}
     group={{ consul_group }}
+    mode=0755
   with_items:
     - "{{ consul_data_dir }}"
     - "{{ consul_config_dir }}"
     - "{{ consul_ui_dir }}"
-    - "{{ consul_log_file|dirname }}"
+
+- name: create consul log file
+  file: >
+    state=touch
+    path={{ consul_log_file }}
+    owner={{ consul_user }}
+    group={{ consul_group }}
+    mode=0644
 
 - name: check consul archive stat
   stat: path={{ consul_download_folder }}/{{ consul_archive }}
@@ -86,8 +93,11 @@
     group={{ consul_group }}
     mode=0644
 
+- name: ensure consul is stopped
+  service: name=consul state=stopped
+
 - name: clean consul data directory
   shell: "rm -rf {{ consul_data_dir }}/*"
 
-- name: ensure consul is restarted
-  service: name=consul enabled=true state=restarted
+- name: ensure consul is started
+  service: name=consul enabled=true state=started

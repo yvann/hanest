@@ -1,0 +1,9 @@
+#Listen on all interfaces
+interface=*
+
+no-resolv
+no-hosts
+
+server=/{{ consul_domain }}/127.0.0.1#{{ consul_ports.dns }}
+server=8.8.8.8
+server=8.8.4.4

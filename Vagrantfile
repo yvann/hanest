@@ -62,7 +62,7 @@ Vagrant.configure(2) do |config|
 
         node.vm.provision :hostmanager
         node.vm.provision "ansible" do |ansible|
-          ansible.playbook = 'playbooks/node.yml'
+          ansible.playbook = 'playbooks/setup.yml'
           ansible.limit = 'all'
           ansible.groups = ansible_groups
           ansible.host_vars = hostvars

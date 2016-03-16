@@ -31,29 +31,42 @@
     mode=0644
 
 - name: add vagrant user to docker group
-  user:
-    name: vagrant
-    groups: docker
-    append: yes
-  register: vagrant_user
+  user: >
+    name=vagrant
+    groups=docker
+    append=yes
+    state=present
+  register: create_vagrant_user
 
 - name: reboot server
-  shell: sleep 1 && reboot
-  async: 1
+  shell: reboot
+  async: 0
   poll: 0
   ignore_errors: true
   become: true
-  when: vagrant_user.changed
+  when: create_vagrant_user.changed
 
 - name: waiting for the reboot
   local_action: >
     wait_for
-    host={{ inventory_hostname }}
-    port=22
+    host={{ ansible_host }}
+    port={{ ansible_port }}
     state=started
-    delay=15
-    timeout=300
-  when: vagrant_user.changed
+    delay=30
+    timeout=900
+    connect_timeout=15
+  when: create_vagrant_user.changed
 
 - name: ensure docker is restarted
   service: name=docker enabled=true state=restarted
+
+- name: start docker registrator
+  docker:
+    name: "registrator"
+    image: "gliderlabs/registrator:master"
+    command: consul://{{ hostvars[inventory_hostname]['ansible_eth1'].ipv4.address }}:{{ consul_ports.http }}
+    pull: always
+    state: reloaded
+    detach: true
+    volumes: ["/var/run/docker.sock:/tmp/docker.sock"]
+    docker_url: "unix://var/run/docker.sock"
