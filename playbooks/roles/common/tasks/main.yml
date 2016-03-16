@@ -1,0 +1,57 @@
+---
+- name: update DNS servers used by the VM
+  template: src=etc/resolv.conf dest=/etc/resolv.conf owner=root group=root mode=0644
+
+- name: install locales
+  locale_gen: name={{ item }} state=present
+  with_items: ["fr_FR.UTF-8", "en_US.UTF-8"]
+
+- name: update apt database
+  apt: update_cache=yes cache_valid_time=604800
+  register: updated_apt_cache
+
+- name: upgrade
+  apt: upgrade=full force=yes
+  when: updated_apt_cache.changed
+
+- name: upgrade kernel
+  apt: name={{ item }} state=latest force=yes
+  with_items: ["linux-image-generic-lts-utopic"]
+  register: upgraded_kernel
+
+- name: reboot server
+  shell: sleep 1 && reboot
+  async: 1
+  poll: 0
+  ignore_errors: true
+  become: true
+  when: upgraded_kernel.changed
+
+- name: waiting for the reboot
+  local_action: >
+    wait_for
+    host={{ inventory_hostname }}
+    port=22
+    state=started
+    delay=15
+    timeout=300
+  when: upgraded_kernel.changed
+
+- name: install common packages
+  apt: name={{ item }} state=present force=yes
+  with_items: [
+    "linux-image-extra-{{ ansible_kernel }}",
+    "apt-transport-https",
+    "ca-certificates",
+    "ntp",
+    "htop",
+    "curl",
+    "unzip",
+    "git",
+    "jq",
+    "python",
+    "python-pip"
+  ]
+
+- name: Restart ntp
+  service: name=ntp state=restarted

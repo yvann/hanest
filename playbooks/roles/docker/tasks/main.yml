@@ -1,0 +1,59 @@
+---
+- name: sign docker repository
+  apt_key: id=0x58118E89F3A912897C070ADBF76221572C52609D keyserver="hkp://p80.pool.sks-keyservers.net:80" state=present
+  notify: Update apt database
+
+- name: add docker repository
+  apt_repository: >
+    repo="deb https://apt.dockerproject.org/repo ubuntu-trusty main"
+    state=present
+    update_cache=no
+  notify: Update apt database
+
+- meta: flush_handlers
+
+- name: ensure legacy docker is absent
+  apt: name="lxc-docker" state=absent purge=yes
+
+- name: install docker packages
+  apt: name={{ item }} state=present force=yes
+  with_items: ["apparmor", "docker-engine"]
+
+- name: install docker-py package
+  pip: name="docker-py" state=present
+
+- name: copy docker config
+  template: >
+    src=etc/default/docker.j2
+    dest=/etc/default/docker
+    owner=root
+    group=root
+    mode=0644
+
+- name: add vagrant user to docker group
+  user:
+    name: vagrant
+    groups: docker
+    append: yes
+  register: vagrant_user
+
+- name: reboot server
+  shell: sleep 1 && reboot
+  async: 1
+  poll: 0
+  ignore_errors: true
+  become: true
+  when: vagrant_user.changed
+
+- name: waiting for the reboot
+  local_action: >
+    wait_for
+    host={{ inventory_hostname }}
+    port=22
+    state=started
+    delay=15
+    timeout=300
+  when: vagrant_user.changed
+
+- name: ensure docker is restarted
+  service: name=docker enabled=true state=restarted

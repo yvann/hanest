@@ -1,0 +1,21 @@
+---
+- hosts: all
+  roles:
+    -
+      role: common
+      become: yes
+
+    -
+      role: consul
+      become: yes
+
+    -
+      role: flocker
+      become: yes
+
+    -
+      role: docker
+      become: yes
+
+    -
+      role: docker-swarm

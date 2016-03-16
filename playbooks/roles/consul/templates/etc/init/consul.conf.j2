@@ -1,0 +1,19 @@
+# Consul Agent (Upstart unit)
+description "Consul Agent"
+
+start on (local-filesystems and net-device-up IFACE!=lo)
+stop on runlevel [016]
+
+script
+
+# Make sure to use all our CPUs, because Consul can block a scheduler thread
+
+sudo setcap CAP_NET_BIND_SERVICE=+eip {{ consul_bin }}; exec sudo -u {{ consul_user }} -g {{ consul_group }} GOMAXPROCS=`nproc` {{ consul_bin }} agent \
+  -config-dir {{ consul_config_dir }} \
+  >> {{ consul_log_file }} 2>&1
+end script
+
+respawn
+respawn limit 10 10
+
+kill timeout 10

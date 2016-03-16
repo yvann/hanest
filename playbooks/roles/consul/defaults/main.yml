@@ -1,0 +1,32 @@
+
+---
+consul_datacenter: "vagrant"
+
+consul_version: "0.6.3"
+consul_sha256: "b0532c61fec4a4f6d130c893fd8954ec007a6ad93effbe283a39224ed237e250"
+consul_ui_sha256: "93bbb300cacfe8de90fb3bd5ede7d37ae6ce014898edc520b9c96a676b2bbb72"
+
+consul_user: "consul"
+consul_group: "consul"
+consul_bin: "/usr/local/bin/consul"
+consul_log_file: "/var/log/consul"
+consul_data_dir: "/var/lib/consul"
+consul_config_dir: "/etc/consul/conf.d"
+
+consul_ports:
+  http: 8500
+  https: -1
+  dns: 8600
+  rpc: 8400
+  serf_lan: 8301
+  serf_wan: 8302
+  server: 8300
+
+consul_archive: "consul_{{ consul_version }}_linux_amd64.zip"
+consul_download_url: "https://releases.hashicorp.com/consul/{{ consul_version }}/{{ consul_archive }}"
+consul_download_folder: "/tmp"
+
+consul_ui_archive: "consul_{{ consul_version }}_web_ui.zip"
+consul_ui_download_url: "https://releases.hashicorp.com/consul/{{ consul_version }}/{{ consul_ui_archive }}"
+consul_ui_download_folder: "/tmp"
+consul_ui_dir: "/var/lib/consul-ui"

@@ -1,0 +1,6 @@
+---
+- name: Update apt database
+  apt: update_cache=yes
+
+- name: Upgrade packages
+  apt: upgrade=full force=yes
