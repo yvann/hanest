@@ -1,0 +1,69 @@
+---
+- name: sign docker repository
+  apt_key: >
+    id=0x58118E89F3A912897C070ADBF76221572C52609D
+    keyserver="hkp://p80.pool.sks-keyservers.net:80"
+    state=present
+  notify: update apt database
+  tags: install
+
+- name: add docker repository
+  apt_repository: >
+    repo="deb https://apt.dockerproject.org/repo ubuntu-trusty main"
+    state=present
+    update_cache=no
+  notify: update apt database
+  tags: install
+
+- meta: flush_handlers
+
+- name: ensure legacy docker is absent
+  apt: name="lxc-docker" state=absent purge=yes
+  tags: install
+
+- name: install docker packages
+  apt: name={{ item }} state=latest force=yes
+  with_items: ["apparmor", "docker-engine"]
+  tags: install
+
+- name: install docker-py package
+  pip: name="docker-py" state=latest
+  tags: install
+
+- name: "add {{ user_username }} user to docker group"
+  user: >
+    name={{ user_username }}
+    groups=docker
+    append=yes
+    state=present
+  register: add_user_to_docker_group
+  tags: install
+
+- name: ensure docker is enabled
+  service: name=docker enabled=yes
+  tags: install
+
+- name: copy docker config
+  template: >
+    src=etc/default/docker.j2
+    dest=/etc/default/docker
+    owner=root
+    group=root
+    mode=0644
+  tags: setup
+
+- name: ensure docker is restarted
+  service: name=docker state=restarted
+  tags: setup
+
+- name: start docker registrator
+  docker:
+    name: "registrator"
+    image: "gliderlabs/registrator:master"
+    command: consul://consul.service.{{ consul_domain }}:{{ consul_ports.http }}
+    pull: always
+    state: reloaded
+    detach: true
+    volumes: ["/var/run/docker.sock:/tmp/docker.sock"]
+    docker_url: "unix://var/run/docker.sock"
+  tags: setup

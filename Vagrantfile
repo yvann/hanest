@@ -10,7 +10,12 @@ parameters = {
 }
 
 Vagrant.configure(2) do |config|
-  config.vm.box = "ubuntu/trusty64"
+  config.vm.box = "hanest/node"
+  config.vm.box_url = "file://provisioning/packer/hanest-node-virtualbox.box"
+
+  config.ssh.username = "hanest"
+  config.ssh.password = "theperfectnestforyourcontainers"
+  config.ssh.insert_key = true
 
   config.vm.box_check_update = false
   config.vm.synced_folder ".", "/vagrant", disabled: true
@@ -49,22 +54,11 @@ Vagrant.configure(2) do |config|
       })
 
       if last
-        ansible_groups = {
-          "role=node" => nodes,
-          "role=node:vars" => { },
-          # "dc=vagrantdc" => nodes,
-          # "dc=vagrantdc:vars" => {
-          #   "consul_dc" => "vagrantdc",
-          #   "provider" => "virtualbox",
-          #   "publicly_routable" => true
-          # }
-        }
-
         node.vm.provision :hostmanager
         node.vm.provision "ansible" do |ansible|
-          ansible.playbook = 'playbooks/setup.yml'
+          ansible.playbook = 'provisioning/playbooks/node.yml'
+          # ansible.raw_arguments = ["-t setup"]
           ansible.limit = 'all'
-          ansible.groups = ansible_groups
           ansible.host_vars = hostvars
         end
       end

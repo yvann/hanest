@@ -1,0 +1,17 @@
+---
+- name: update apt database
+  apt: update_cache=yes
+  tags: install
+
+- name: install locales
+  locale_gen: name={{ item }} state=present
+  with_items: ["fr_FR.UTF-8", "en_US.UTF-8"]
+  tags: install
+
+- name: ensure ntp is enabled
+  service: name=ntp enabled=yes
+  tags: install
+
+- name: ensure ntp is restarted
+  service: name=ntp state=restarted
+  tags: setup

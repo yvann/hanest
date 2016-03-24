@@ -1,0 +1,28 @@
+---
+- hosts: all
+  vars:
+    user_username: "{{ ansible_env.USER_USERNAME|default('hanest') }}"
+  roles:
+    -
+      role: common
+      become: yes
+
+    -
+      role: consul
+      become: yes
+
+    -
+      role: dnsmasq
+      become: yes
+
+    # -
+    #   role: flocker
+    #   become: yes
+
+    -
+      role: docker
+      become: yes
+
+    -
+      role: docker-swarm
+      become: yes

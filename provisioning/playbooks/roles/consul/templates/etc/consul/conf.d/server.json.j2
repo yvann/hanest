@@ -1,0 +1,30 @@
+{
+  "data_dir": "{{ consul_data_dir }}",
+  "leave_on_terminate": false,
+  "skip_leave_on_interrupt": true,
+  "rejoin_after_leave": true,
+  "disable_update_check": true,
+  "client_addr": "0.0.0.0",
+  "http_api_response_headers" : { "Access-Control-Allow-Origin" : "*" },
+  "bind_addr": "{{ hostvars[inventory_hostname]['ansible_eth1'].ipv4.address }}",
+  "ports": {
+    {% for serviceName, servicePort in consul_ports.iteritems() %}"{{ serviceName }}": {{ servicePort }}{% if not loop.last %},{% endif %}{% endfor %}
+  },
+  "services": [
+    {% for serviceName, servicePort in consul_ports.iteritems() %}{
+        "name": "consul-{{ serviceName }}",
+        "address": "{{ hostvars[inventory_hostname]['ansible_eth1'].ipv4.address }}",
+        "port": {{ servicePort }}
+      }{% if not loop.last %},{% endif %}{% endfor %}
+  ],
+  "retry_join": [{% for host in play_hosts %}"{{ hostvars[host]['ansible_eth1'].ipv4.address }}"{% if not loop.last %}, {% endif %}{% endfor %}],
+  "retry_max": 0,
+  "retry_interval": "5s",
+  "bootstrap_expect": {{ play_hosts|length }},
+  "server": true,
+  "node_name": "{{ inventory_hostname }}",
+  "datacenter": "{{ consul_datacenter }}",
+  "domain": "{{ consul_domain }}",
+  "ui_dir": "{{ consul_ui_dir }}",
+  "ui": true
+}

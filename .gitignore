@@ -2,4 +2,11 @@
 .DS_Store
 .idea
 .vagrant
-playbooks/*.retry
+
+provisioning/packer/output*
+provisioning/packer/packer*
+provisioning/packer/*.box
+provisioning/packer/$HOME
+provisioning/packer/playbooks/*.retry
+
+provisioning/playbooks/*.retry

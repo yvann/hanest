@@ -1,0 +1,29 @@
+---
+- name: ensure others dns servers are absent
+  apt: name="bind9" state=absent purge=yes
+  tags: install
+
+- name: install dnsmasq
+  apt: name={{ item }} state=present force=yes
+  with_items: ["dnsmasq"]
+  tags: install
+
+- name: copy consul server config
+  template: >
+    src={{ item }}.j2
+    dest=/{{ item }}
+    owner={{ consul_user }}
+    group={{ consul_group }}
+    mode=0644
+  with_items:
+    - etc/dnsmasq.conf
+    - etc/dnsmasq.d/10-consul
+  tags: install
+
+- name: ensure dnsmasq is enabled
+  service: name=dnsmasq enabled=true
+  tags: install
+
+- name: ensure dnsmasq is restarted
+  service: name=dnsmasq state=restarted
+  tags: setup

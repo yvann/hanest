@@ -1,0 +1,91 @@
+
+{
+  "variables": {
+    "hostname": "hanest",
+    "user_fullname": "Hanest",
+    "user_username": "hanest",
+    "user_home": "/home/hanest",
+    "user_password": "theperfectnestforyourcontainers",
+
+    "install_vagrant_key": "true",
+
+    "iso_url": "http://releases.ubuntu.com/14.04/ubuntu-14.04.4-server-amd64.iso",
+    "iso_checksum": "07e4bb5569814eab41fafac882ba127893e3ff0bdb7ec931c9b2d040e3e94e7a",
+    "iso_checksum_type": "sha256",
+
+    "vm_name": "hanest-node",
+    "vm_disksize": "50000",
+    "vm_memory": "8192",
+    "vm_cpus": "4"
+  },
+  "provisioners": [
+    {
+      "type": "shell",
+      "environment_vars": [
+        "USER_USERNAME={{ user `user_username` }}",
+        "USER_PASSWORD={{ user `user_password` }}",
+        "USER_HOME={{ user `user_home` }}",
+        "INSTALL_VAGRANT_KEY={{ user `install_vagrant_key` }}"
+      ],
+      "execute_command": "echo '{{ user `user_password` }}' | {{.Vars}} sudo -E -S bash '{{.Path}}'",
+      "scripts": [
+        "scripts/update.sh",
+        "scripts/install.sh",
+        "scripts/vagrant.sh",
+        "scripts/sshd.sh",
+        "scripts/virtualbox.sh",
+        "scripts/cleanup.sh"
+      ]
+    }
+  ],
+  "builders": [
+    {
+      "type": "virtualbox-iso",
+      "http_directory": "http",
+      "iso_url": "{{user `iso_url`}}",
+      "iso_checksum": "{{user `iso_checksum`}}",
+      "iso_checksum_type": "{{user `iso_checksum_type`}}",
+      "guest_os_type": "Ubuntu_64",
+      "guest_additions_sha256": "8190f1e4031f8195971c2a97d2d3b1cf2d86fc83219f750d05cee9255c7dad85",
+      "guest_additions_url": "http://download.virtualbox.org/virtualbox/5.0.16/VBoxGuestAdditions_5.0.16.iso",
+      "guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
+      "ssh_username": "{{ user `user_username` }}",
+      "ssh_password": "{{ user `user_password` }}",
+      "ssh_wait_timeout": "10000s",
+      "headless": false,
+      "boot_command": [
+        "<esc><esc><enter><wait>",
+        "/install/vmlinuz noapic ",
+        "file=/floppy/preseed.cfg ",
+        "debian-installer=en_US auto locale=en_US kbd-chooser/method=us ",
+        "hostname={{ user `hostname` }} ",
+        "fb=false debconf/frontend=noninteractive ",
+        "keyboard-configuration/modelcode=SKIP keyboard-configuration/layout=USA ",
+        "keyboard-configuration/variant=USA console-setup/ask_detect=false ",
+        "passwd/user-fullname={{ user `user_fullname` }} ",
+        "passwd/user-password={{ user `user_password` }} ",
+        "passwd/user-password-again={{ user `user_password` }} ",
+        "passwd/username={{ user `user_username` }} ",
+        "initrd=/install/initrd.gz -- <enter>"
+      ],
+      "floppy_files": ["http/preseed.cfg"],
+      "boot_wait": "5s",
+      "hard_drive_interface": "sata",
+      "shutdown_command": "echo '{{ user `user_password` }}' | sudo -S shutdown -P now",
+      "disk_size": "{{user `vm_disksize`}}",
+      "vm_name": "{{user `vm_name`}}",
+      "vboxmanage": [
+        ["modifyvm", "{{.Name}}", "--memory", "{{user `vm_memory`}}"],
+        ["modifyvm", "{{.Name}}", "--cpus", "{{user `vm_cpus`}}"]
+      ]
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "vagrant",
+      "compression_level": 9,
+      "keep_input_artifact": false,
+      "output": "./{{user `vm_name`}}-{{.Provider}}.box"
+    }
+  ]
+}

@@ -1,8 +1,0 @@
-#
-# THIS FILE DOES NOT APPLY TO SYSTEMD
-#
-#   Please see the documentation for "systemd drop-ins":
-#   https://docs.docker.com/engine/articles/systemd/
-#
-
-DOCKER_OPTS="--cluster-store=consul://{{ hostvars[inventory_hostname]['ansible_eth1'].ipv4.address }}:{{ consul_ports.http }} --cluster-advertise={{ hostvars[inventory_hostname]['ansible_eth1'].ipv4.address }}:{{ docker_port }} -H unix:///var/run/docker.sock -H tcp://0.0.0.0:{{ docker_port }}"
