@@ -15,10 +15,6 @@
       role: dnsmasq
       become: yes
 
-    # -
-    #   role: flocker
-    #   become: yes
-
     -
       role: docker
       become: yes

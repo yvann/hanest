@@ -1,16 +1,18 @@
 - name: stop docker swarm agents
   docker:
-    name: "swarm-agent"
+    name: "{{ item }}"
     image: "swarm"
     state: stopped
     docker_url: "unix://var/run/docker.sock"
+  with_items: ["swarm-agent", "swarm-manager"]
 
 - name: start docker swarm managers
   docker:
     name: "swarm-manager"
-    image: "swarm"
+    image: "swarm:{{ docker_swarm_version }}"
     command: manage --replication --advertise {{ hostvars[inventory_hostname]['ansible_eth1'].ipv4.address }}:{{ docker_swarm_port }} consul://{{ hostvars[inventory_hostname]['ansible_eth1'].ipv4.address }}:{{ consul_ports.http }}
-    state: reloaded
+    state: started
+    restart_policy: "always"
     detach: true
     ports: ["{{ docker_swarm_port }}:{{ docker_port }}"]
     docker_url: "unix://var/run/docker.sock"
@@ -21,9 +23,10 @@
 - name: start docker swarm agents
   docker:
     name: "swarm-agent"
-    image: "swarm"
+    image: "swarm:{{ docker_swarm_version }}"
     command: join --advertise {{ hostvars[inventory_hostname]['ansible_eth1'].ipv4.address }}:{{ docker_port }} consul://{{ hostvars[inventory_hostname]['ansible_eth1'].ipv4.address }}:{{ consul_ports.http }}
     state: started
+    restart_policy: "always"
     detach: true
     docker_url: "unix://var/run/docker.sock"
     env:
