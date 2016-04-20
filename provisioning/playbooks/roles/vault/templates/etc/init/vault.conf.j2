@@ -1,0 +1,19 @@
+# Vault Agent (Upstart unit)
+description "Vault Agent"
+
+start on (local-filesystems and net-device-up IFACE!=lo)
+stop on runlevel [016]
+
+script
+
+# Make sure to use all our CPUs, because Vault can block a scheduler thread
+
+sudo setcap CAP_IPC_LOCK,CAP_NET_BIND_SERVICE=+eip {{ vault_bin }}; exec sudo -u {{ vault_user }} -g {{ vault_group }} GOMAXPROCS=`nproc` {{ vault_bin }} server \
+  -config {{ vault_config_file }} \
+  >> {{ vault_log_file }} 2>&1
+end script
+
+respawn
+respawn limit 10 10
+
+kill timeout 10

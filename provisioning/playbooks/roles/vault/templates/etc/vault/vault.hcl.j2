@@ -1,0 +1,10 @@
+backend "consul" {
+  address = "consul.service.{{ consul_domain }}:{{ consul_ports.http }}"
+  advertise_addr = "{{ vault_scheme }}://{{ hostvars[inventory_hostname]['ansible_eth1'].ipv4.address }}:{{ vault_port }}"
+  path = "vault"
+}
+
+listener "tcp" {
+  address = "{{ hostvars[inventory_hostname]['ansible_eth1'].ipv4.address }}:{{ vault_port }}"
+  tls_disable = 1
+}

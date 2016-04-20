@@ -1,0 +1,102 @@
+---
+- name: create vault group
+  group: >
+    name={{ vault_group }}
+    state=present
+  tags: install
+
+- name: create vault user
+  user: >
+    name={{ vault_user }}
+    group={{ vault_group }}
+    system=yes
+    state=present
+  tags: install
+
+- name: create vault directories
+  file: >
+    state=directory
+    path={{ item }}
+    owner={{ vault_user }}
+    group={{ vault_group }}
+    mode=0755
+  with_items:
+    - "{{ vault_config_file|dirname }}"
+  tags: install
+
+- name: create vault log file
+  file: >
+    state=touch
+    path={{ vault_log_file }}
+    owner={{ vault_user }}
+    group={{ vault_group }}
+    mode=0644
+  tags: install
+
+- name: check vault archive stat
+  stat: path={{ vault_download_folder }}/{{ vault_archive }}
+  register: vault_archive_stat
+  tags: install
+
+- name: download vault
+  get_url: >
+    url={{ vault_download_url }}
+    dest={{ vault_download_folder }}/{{ vault_archive }}
+    sha256sum={{ vault_sha256 }}
+  when: not vault_archive_stat.stat.exists
+  register: vault_was_downloaded
+  tags: install
+
+- name: check vault bin stat
+  stat: path={{ vault_bin }}
+  register: vault_bin_stat
+  tags: install
+
+- name: install vault
+  unarchive: >
+    copy=no
+    src={{ vault_download_folder }}/{{ vault_archive }}
+    dest={{ vault_bin|dirname }}
+    owner={{ vault_user }}
+    group={{ vault_group }}
+    mode=0755
+  when: vault_was_downloaded|changed or not vault_bin_stat.stat.exists
+  tags: install
+
+- name: copy vault upstart script
+  template: >
+    src=etc/init/vault.conf.j2
+    dest={{ vault_upstart_file }}
+    owner=root
+    group=root
+    mode=0644
+  tags: install
+
+- name: ensure vault is enabled
+  service: name=vault enabled=yes
+  tags: install
+
+- name: copy vault server config
+  template: >
+    src=etc/vault/vault.hcl.j2
+    dest={{ vault_config_file }}
+    owner={{ vault_user }}
+    group={{ vault_group }}
+    mode=0644
+  tags: setup
+
+- name: ensure vault is restarted
+  service: name=vault state=restarted
+  tags: setup
+
+- name: set vault environment variables
+  lineinfile: >
+    dest=/etc/environment
+    state=present
+    create=yes
+    owner=root
+    group=root
+    mode=0644
+    regexp='^VAULT_ADDR\=(.+)'
+    line='VAULT_ADDR="{{ vault_scheme }}://{{ hostvars[inventory_hostname]['ansible_eth1'].ipv4.address }}:{{ vault_port }}"'
+  tags: setup
