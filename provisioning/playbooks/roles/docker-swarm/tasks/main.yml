@@ -3,7 +3,7 @@
     name: "{{ item }}"
     image: "swarm"
     state: stopped
-    docker_url: "unix://var/run/docker.sock"
+    docker_url: "unix:///var/run/docker.sock"
   with_items: ["swarm-agent", "swarm-manager"]
 
 - name: start docker swarm managers
@@ -15,7 +15,7 @@
     restart_policy: "always"
     detach: true
     ports: ["{{ docker_swarm_port }}:{{ docker_port }}"]
-    docker_url: "unix://var/run/docker.sock"
+    docker_url: "unix:///var/run/docker.sock"
     env:
       SERVICE_NAME: swarm-manager
       SERVICE_TAGS: swarm
@@ -28,7 +28,7 @@
     state: started
     restart_policy: "always"
     detach: true
-    docker_url: "unix://var/run/docker.sock"
+    docker_url: "unix:///var/run/docker.sock"
     env:
       SERVICE_NAME: swarm-agent
       SERVICE_TAGS: swarm

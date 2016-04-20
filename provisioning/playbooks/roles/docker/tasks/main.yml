@@ -58,11 +58,13 @@
 - name: start docker registrator
   docker:
     name: "registrator"
-    image: "gliderlabs/registrator:master"
-    command: consul://consul.service.{{ consul_domain }}:{{ consul_ports.http }}
-    pull: always
+    image: "gliderlabs/registrator:v7"
+    command: "consul://consul.service.{{ consul_domain }}:{{ consul_ports.http }}"
     state: reloaded
+    restart_policy: "always"
     detach: true
     volumes: ["/var/run/docker.sock:/tmp/docker.sock"]
-    docker_url: "unix://var/run/docker.sock"
+    docker_url: "unix:///var/run/docker.sock"
+    net: "host"
+    hostname: "{{ inventory_hostname }}"
   tags: setup

@@ -10,4 +10,5 @@ DOCKER_OPTS="\
   --cluster-advertise={{ hostvars[inventory_hostname]['ansible_eth1'].ipv4.address }}:{{ docker_port }} \
   --host=unix:///var/run/docker.sock \
   --host=tcp://0.0.0.0:{{ docker_port }} \
+  --dns={{ hostvars[inventory_hostname]['ansible_eth1'].ipv4.address }} \
 "
