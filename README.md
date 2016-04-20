@@ -2,10 +2,9 @@
 
 Hanest (High-Availability Nest)
 
-* consul
+* consul - https://www.consul.io/
+* vault - https://www.vaultproject.io/
 * dnsmasq
-* traefik (stopped)
-* ~~flocker~~
 * docker
 * registrator
 * docker swarm
