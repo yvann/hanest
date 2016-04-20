@@ -11,7 +11,7 @@ parameters = {
 
 Vagrant.configure(2) do |config|
   config.vm.box = "hanest/node"
-  config.vm.box_url = "file://provisioning/packer/hanest-node-virtualbox.box"
+  config.vm.box_url = "file://hanest/packer/hanest-node-virtualbox.box"
 
   config.ssh.username = "hanest"
   config.ssh.password = "theperfectnestforyourcontainers"
@@ -56,7 +56,7 @@ Vagrant.configure(2) do |config|
       if last
         node.vm.provision :hostmanager
         node.vm.provision "ansible" do |ansible|
-          ansible.playbook = 'provisioning/playbooks/node.yml'
+          ansible.playbook = 'hanest/playbooks/node.yml'
           # ansible.raw_arguments = ["-t setup"]
           ansible.limit = 'all'
           ansible.host_vars = hostvars
