@@ -17,8 +17,7 @@
     ports: ["{{ docker_swarm_port }}:{{ docker_port }}"]
     docker_url: "unix:///var/run/docker.sock"
     env:
-      SERVICE_NAME: swarm-manager
-      SERVICE_TAGS: swarm
+      SERVICE_IGNORE: true
 
 - name: start docker swarm agents
   docker:
@@ -30,5 +29,4 @@
     detach: true
     docker_url: "unix:///var/run/docker.sock"
     env:
-      SERVICE_NAME: swarm-agent
-      SERVICE_TAGS: swarm
+      SERVICE_IGNORE: true

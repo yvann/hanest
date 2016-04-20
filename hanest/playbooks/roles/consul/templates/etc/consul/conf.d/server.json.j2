@@ -10,13 +10,15 @@
   "ports": {
     {% for serviceName, servicePort in consul_ports.iteritems() %}"{{ serviceName }}": {{ servicePort }}{% if not loop.last %},{% endif %}{% endfor %}
   },
-  "services": [
-    {% for serviceName, servicePort in consul_ports.iteritems() %}{
-        "name": "consul-{{ serviceName }}",
-        "address": "{{ hostvars[inventory_hostname]['ansible_eth1'].ipv4.address }}",
-        "port": {{ servicePort }}
-      }{% if not loop.last %},{% endif %}{% endfor %}
-  ],
+  {#
+    "services": [
+      {% for serviceName, servicePort in consul_ports.iteritems() %}{
+          "name": "consul-{{ serviceName }}",
+          "address": "{{ hostvars[inventory_hostname]['ansible_eth1'].ipv4.address }}",
+          "port": {{ servicePort }}
+        }{% if not loop.last %},{% endif %}{% endfor %}
+    ],
+  #}
   "retry_join": [{% for host in play_hosts %}"{{ hostvars[host]['ansible_eth1'].ipv4.address }}"{% if not loop.last %}, {% endif %}{% endfor %}],
   "retry_max": 0,
   "retry_interval": "5s",

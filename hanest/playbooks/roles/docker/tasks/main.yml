@@ -67,4 +67,6 @@
     docker_url: "unix:///var/run/docker.sock"
     net: "host"
     hostname: "{{ inventory_hostname }}"
+    env:
+      SERVICE_IGNORE: true
   tags: setup
